@@ -1,2 +1,2 @@
-# JuliaCIActions
-Julia CI Actions that are used among several repositories.
+# JuliaCIWorkflows
+Julia CI workflows that are used among several repositories.
