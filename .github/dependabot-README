@@ -1,0 +1,7 @@
+A quickstart manual for the usage of the github-dependabot is available at https://docs.github.com/de/code-security/getting-started/dependabot-quickstart-guide
+
+Currently we use the dependabot in multiple packages of the FMI-jl ecosystem, in order to monitor the dependency versions used in the CI-pipeline.
+It checks monthly, if included external actions have more recent major-versions available. 
+If they do, the bot opens pullrequests in order to update to those major-versions in the respective workflows.
+
+If you want to include the depedabot in the same way into another package, just paste the dependabot.yml from here to <package-root>/.github/dependabot.yml
