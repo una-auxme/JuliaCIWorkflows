@@ -1,0 +1,23 @@
+PkgEval.jl is used to evaluate the health and compatibility of Julia packages across different versions of Julia and dependencies.
+As it is not a registered Julia Package, it gets installed from https://github.com/JuliaCI/PkgEval.jl.git
+It is currently only available on Linux
+To add it to a package, copy Eval.yml to .github/workflows/Eval.yml and provide a executable julia script as test/eval.jl, with the following contents (modified to include all variations on packages and julia versions you want to evaluate against):
+
+using PkgEval
+using myPackage
+using Test
+
+config = Configuration(; julia = "1.10", time_limit = 120 * 60);
+
+package = Package(; name = "myPackage");
+
+@info "PkgEval"
+result = evaluate([config], [package])
+
+@info "Result"
+println(result)
+
+@info "Log"
+println(result[1, :log])
+
+@test result[1, :status] == :ok
