@@ -1,0 +1,34 @@
+TagBot creates Git-tags, GitHub-releases, and changelogs for registered Julia packages.
+
+See https://github.com/JuliaRegistries/TagBot
+
+The TagBot.yml in this repo is a simplifyed version of the recommended TagBot.yml from https://github.com/JuliaRegistries/TagBot/blob/master/README.md
+
+Make shure, that sufficent workflow-permissions are granted under the repositorys settings -> Actions -> General -> Workflow permissions: "Read and Write permissions for all repository scopes" AND "Allow github actions to create and approve pullrequests" -> Save
+
+The TagBot requires not only the automatically created GITHUB_TOKEN (https://docs.github.com/en/actions/security-for-github-actions/security-guides/automatic-token-authentication#about-the-github_token-secret) 
+but also the environment variable DOCUMENTER_KEY or any other SSH_KEY with write permissions. TagBot creates git-tags and github-releases, so it needs access to be able to push to the repo via ssh.
+SSH_KEY must contain SSH Public Key for git pushes and API calls and can be passed to the TagBot workflow as a github secret.
+Either reuse the SSH key, generated for the Documentation action, that is used to publish the build documentation to the github-pages, or generate a ssh keypair for TagBot
+
+A simplifyed generation of the ssh keys can be adapted from CompatHelpers manual (When following this manual, just make shure to give the ssh keys sufficient write permissions):
+https://juliaregistries.github.io/CompatHelper.jl/dev/#Creating-SSH-Key
+Generate a new SSH key
+	<ssh-keygen -m PEM -N "" -f compathelper_key>
+Create a new GitHub secret
+	Copy the private key, <cat compathelper_key>
+	Go to your repositories settings page
+	Select Secrets, and New Repository Secret
+	Name the secret COMPATHELPER_PRIV, paste the copied private key
+Create a new deploy key
+	Copy the public key, <cat compathelper_key.pub>
+	Go to your repositories settings page
+	Select Deploy Keys, and Add Deploy Key
+	Name the deploy key COMPATHELPER_PUB, paste in the copied public key
+	Ensure that the key has Write Access
+Cleanup the SSH key from your computer, <rm -f compathelper_key compathelper_key.pub>
+
+The process on how to generate the SSH_keys is also described here: https://github.com/JuliaRegistries/TagBot/blob/master/README.md#ssh-deploy-keys
+
+A common pitfall is that if there is an error in the TagBot inclusion into the repo (e.g. permission issues with the ssh key), retriggering a release meight not work even after fixing the issue, espaecially if the error persists for too long. 
+In that case, the only fixes are to do the job manually or skip that version as github release. After fixing the issue, checking in new versions into the Julia Registry should trigger TagBot correctly again.
