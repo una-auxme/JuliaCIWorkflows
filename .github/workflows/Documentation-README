@@ -1,0 +1,11 @@
+The Documentation.yml action has the purpose to copy all necessary source files for, and calling the, documentation building&deployment process.
+For deployment to github-pages, a DOCUMENTER_KEY needs to be provided, that has write-permissions to push to the gh-pages branch. 
+
+This SSH Key has to be provided as described here (As we use github-actions and -pages, the section on Travis is not applicable): https://documenter.juliadocs.org/stable/man/hosting/walkthrough/
+The process for handling the SSH keys is similar to TagBot and CompatHelper, so you can have a look at those readme files in this repo too.
+
+After gathering all examples, Documentation.yml calls the docs/make.jl file. Some examples of make.jl files (one simple, two with more sophisticated features) can be found in this repo under docs.
+The minimal make.jl is there for educational reasons and minimal builds. It should not be used, if you build examples with the CI pipeline and want to include them into the documentation. 
+It is recommended to use the medium version, if you have only minmal examples without any dynamically generated svgs or other supportfiles.
+The version with all features for handling broken examples is recommended for all packages with extensive use of complex CI-built examples. 
+As a minimum, Documenter.jl is required. If you would like to use additional features like those implemented in the provided make.jl files, other packages will also be required to be included into the docs/Project.toml. See the provided make.jl files for more information on that.
