@@ -16,9 +16,8 @@ on:
         default: ''
         options:
           - ''
-          - 'a'
-          - 'b'
-          - 'c'
+          #MARKER_FOR_AUTO_UPDATE_BEGIN (do not move, indent or tamper with! must be just below first, empty list element with same indentation)
+          #MARKER_FOR_AUTO_UPDATE_END (do not move, indent or tamper with! must be just below last list element with same indentation)
   pull_request:
   push:
     branches: 
@@ -32,7 +31,7 @@ on:
 jobs:
   update_JuliaCIWorkflows_repo:
     runs-on: ubuntu-latest
-    if: ${{ github.event.repository.name == 'JuliaCIWorkflows' }} && github.event_name == 'push'
+    if: ${{ github.event.repository.name == 'JuliaCIWorkflows' && github.event_name == 'push' }} 
     steps:
       - name: "Check out repository"
         uses: actions/checkout@v4
@@ -40,14 +39,31 @@ jobs:
           sparse-checkout: '.github'
           ssh-key: ${{ secrets.JULIA_CI_WORKFLOWS_UPDATE_KEY }}
           token: ${{ secrets.GITHUB_TOKEN }}
+      # using fjogeleit/yaml-update-action does not work as it does not seem to be able to handle lists
       - name: update selectable options in auxme_manage_JuliaCIWorkflows.yml
-        uses: fjogeleit/yaml-update-action@main
-        with:
-          valueFile: '.github/workflows/auxme_manage_JuliaCIWorkflows.yml'
-          propertyPath: 'on.workflow_dispatch.inputs.add_workflow.options'
-          value: 
-            "['','a','b','c','d']"
-          commitChange: false
+        run: |
+          FILE=".github/workflows/auxme_manage_JuliaCIWorkflows.yml"
+          WORKFLOW_DIR=".github/workflows"
+          INDENTATION=$(grep -o '^[[:space:]]*#MARKER_FOR_AUTO_UPDATE_BEGIN' "$FILE" | head -n 1)
+          NEW_LIST_STR=""
+          for FILEPATH in "$WORKFLOW_DIR"/*.yml; do
+            if [[ "$FILEPATH" != "$FILE" ]]; then
+              FILENAME=$(basename "$FILEPATH")
+              NEW_LIST_STR+="${INDENTATION}- '$FILENAME'\n"
+            fi
+          done
+          sed -i "/#MARKER_FOR_AUTO_UPDATE_BEGIN/,/#MARKER_FOR_AUTO_UPDATE_END/{ 
+            /#MARKER_FOR_AUTO_UPDATE_BEGIN/{ 
+              p; 
+              next; 
+            } 
+            /#MARKER_FOR_AUTO_UPDATE_END/{ 
+              p; 
+              next; 
+            } 
+            d
+          }" "$FILE"
+          echo -e "$NEW_LIST_STR" | sed -i "/#MARKER_FOR_AUTO_UPDATE_BEGIN/a$(cat)" "$FILE"
       - name: create_PR
         uses: peter-evans/create-pull-request@v7
         with:
