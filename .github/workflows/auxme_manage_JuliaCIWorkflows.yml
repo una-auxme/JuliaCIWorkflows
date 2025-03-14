@@ -46,7 +46,7 @@ jobs:
           valueFile: '.github/workflows/auxme_manage_JuliaCIWorkflows.yml'
           propertyPath: 'on.workflow_dispatch.inputs.add_workflow.options'
           value: 
-            ['','a','b','c','d']
+            "['','a','b','c','d']"
           commitChange: false
       - name: create_PR
         uses: peter-evans/create-pull-request@v7
