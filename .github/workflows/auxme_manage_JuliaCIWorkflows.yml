@@ -42,6 +42,7 @@ jobs:
           path: working_repo
           ssh-key: ${{ secrets.JULIA_CI_WORKFLOWS_UPDATE_KEY }}
           token: ${{ secrets.GITHUB_TOKEN }}
+      - run: tree
       - run: cat .github/workflows/auxme_manage_JuliaCIWorkflows.yml
       - name: TODO!!!
         uses: fjogeleit/yaml-update-action@main
