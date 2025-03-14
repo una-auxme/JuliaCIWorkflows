@@ -1,0 +1,153 @@
+name: auxme_manage_JuliaCIWorkflows
+
+env: 
+  PR_BRANCH_NAME: bot_auxme_JuliaCIWorkflows_patches_${{ github.ref_name }}
+
+permissions: write-all
+
+on:
+  # manual trigger
+  workflow_dispatch:
+    inputs:
+      add_workflow:
+        description: 'add new workflow' #'workflow from auxme/JuliaCIWorkflows to add to this repo (run empty once for update, if option is not yet available)'
+        required: false
+        type: choice
+        default: ''
+        options:
+          - ''
+          - 'a'
+          - 'b'
+          - 'c'
+  pull_request:
+  push:
+    branches: 
+      - '**'
+      - '!examples'
+      - '!gh-pages'
+      - '!bot_auxme_JuliaCIWorkflows_patches_*'
+  schedule:
+    - cron: '17 4 * * *'
+
+jobs:
+  update_JuliaCIWorkflows_repo:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.repository.name == 'JuliaCIWorkflows' }}
+    steps:
+      - run: echo "${{ github.event.repository.name }}"
+      - name: "Check out repository"
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: '.github'
+          path: working_repo
+          ssh-key: ${{ secrets.JULIA_CI_WORKFLOWS_UPDATE_KEY }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: TODO!!!
+        uses: fjogeleit/yaml-update-action@main
+        with:
+          valueFile: 'file.yaml'
+          propertyPath: 'on.workflow_dispatch.inputs.add_workflow.options'
+          value: blabla
+          commitChange: true
+          message: 'new workflow found and added to selectable options of ${{ github.event.repository.owner.name }}_manage_JuliaCIWorkflows'
+  manage_JuliaCIWorkflows:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.repository.name != 'JuliaCIWorkflows' }}
+    steps:
+      # we need a ssh private key to deploy the branch for the PR. we can use existing keys for compathelper or documentation deployment, or we need a seperate one
+      - name: Check for available SSH keys and set SSH_KEY
+        # for PRs we can only warn/fail, not create branches and PRs... 
+        if: github.event_name != 'pull_request'
+        run: |
+          echo "SSH_KEY<<END_MARKER_SSH_KEY" >> $GITHUB_ENV
+          if [ -n "${{ secrets.JULIA_CI_WORKFLOWS_UPDATE_KEY }}" ]; then
+            echo "${{ secrets.JULIA_CI_WORKFLOWS_UPDATE_KEY }}" >> $GITHUB_ENV
+            echo "END_MARKER_SSH_KEY" >> $GITHUB_ENV
+            echo "JULIA_CI_WORKFLOWS_UPDATE_KEY found"
+          elif [ -n "${{ secrets.COMPATHELPER_PRIV }}" ]; then
+            echo "${{ secrets.COMPATHELPER_PRIV }}" >> $GITHUB_ENV
+            echo "END_MARKER_SSH_KEY" >> $GITHUB_ENV
+            echo "COMPATHELPER_PRIV found"
+          elif [ -n "${{ secrets.DOCUMENTER_KEY }}" ]; then
+            echo "${{ secrets.DOCUMENTER_KEY }}" >> $GITHUB_ENV
+            echo "END_MARKER_SSH_KEY" >> $GITHUB_ENV
+            echo "DOCUMENTER_KEY found"
+          else
+            echo "::error::No SSH keys found! Please make sure one of secrets.JULIA_CI_WORKFLOWS_UPDATE_KEY, secrets.COMPATHELPER_PRIV, or secrets.DOCUMENTER_KEY is set according to readme."
+          fi
+      - name: "Check out repository with key"
+        if: github.event_name != 'pull_request'
+        uses: actions/checkout@v4
+        with: 
+          sparse-checkout: '.github'
+          path: working_repo
+          ssh-key: ${{ env.SSH_KEY }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: "Check out repository without key (triggered by PR)"
+        if: github.event_name == 'pull_request'
+        uses: actions/checkout@v4
+        with: 
+          sparse-checkout: '.github'
+          path: working_repo
+      - name: "Check out ${{ github.event.repository.owner.name }}/JuliaCIWorkflows"
+        if: github.event_name != 'pull_request'
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: '.github'
+          repository: ${{ github.event.repository.owner.name }}/JuliaCIWorkflows
+          path: reference_repo 
+      - name: "Check out ${{ github.event.pull_request.base.repo.owner.login }}/JuliaCIWorkflows (triggered by PR)"
+        if: github.event_name == 'pull_request'
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: '.github'
+          repository: ${{ github.event.pull_request.base.repo.owner.login }}/JuliaCIWorkflows
+          path: reference_repo     
+      - name: set_github_actor
+        if: github.event_name != 'pull_request'
+        run: |
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "JuliaCIWorkflows Action"
+      - name: check_all_if_they_are_latest
+        run: |
+          FILES=( $(find working_repo/.github -type f -iname "*.yml" -printf "%P\n" | sort ) )
+          for FILE in "${FILES[@]}"; do
+            if [ -f reference_repo/.github/$FILE ]; then
+              if ! diff -q working_repo/.github/$FILE reference_repo/.github/$FILE >/dev/null; then
+                echo "::warning file=$FILE,title=different_version_found::$FILE is different, adding most recent version from ${{ github.event.repository.owner.name }}/JuliaCIWorkflows"
+                cp -f reference_repo/.github/$FILE working_repo/.github/$FILE
+                if [ -f reference_repo/.github/${FILE}_WARNING ]; then
+                  cat reference_repo/.github/${FILE}_WARNING
+                fi
+              fi
+            else
+              echo "::notice file=$FILE,title=Repo-specific_workflow::workflow $FILE is not part of ${{ github.event.repository.owner.name }}/JuliaCIWorkflows, it seems to be specific to this repo and will be ignored"
+            fi
+          done
+      - name: handle_arguments
+        if: github.event_name == 'workflow_dispatch' && inputs.add_workflow != ''
+        run: |
+          echo '${{ github.event_name }} wants to add ${{ inputs.add_workflow }} workflow to this repo'
+          echo '::notice,title={Adding Workflow ${{ inputs.add_workflow }}}::{${{ inputs.add_workflow }} is to be added to this repository}'
+          cp -f reference_repo/.github/${{ inputs.add_workflow }}.yml working_repo/.github/${{ inputs.add_workflow }}.yml
+          if [ -f reference_repo/.github/${{ inputs.add_workflow }}_WARNING ]; then
+            cat reference_repo/.github/${{ inputs.add_workflow }}_WARNING
+          fi
+      - name: fail_on_PR_with_wrong_workflows
+        if: github.event_name == 'pull_request'
+        run: |
+          if [[ `git status --porcelain` ]]; then
+            echo "::error title=workflows_not_valid::worksflows are not up-to-date with ${{ github.event.repository.owner.name }}/JuliaCIWorkflows. Update them. If you want to add a workflow only for this repo, make shure it has not the same name as any workflow from ${{ github.event.repository.owner.name }}/JuliaCIWorkflows."
+          fi
+      - name: create_PR
+        if: github.event_name != 'pull_request'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          path: working_repo
+          branch: ${{ env.PR_BRANCH_NAME }}
+          delete-branch: true
+          commit-message: "updated all shared workflows"
+          base: ${{ github.ref_name }}
+          title: "reset/updated all shared workflows to latest ${{ github.event.repository.owner.name }}/JuliaCIWorkflows version"
+          body: "this will overrite all local changes to the affected files. If you wish to use repo-specific workflows, it is recommended to name their files differently that those in the juliaCIworkflows repo! Then they will be ignored when updating the other workflows ; make shure all required secrets for the loaded actions are provided (see warnings for the latest execution of the CI-update action on the relevant branch)"
