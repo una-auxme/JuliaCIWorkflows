@@ -40,8 +40,6 @@ jobs:
           sparse-checkout: '.github'
           ssh-key: ${{ secrets.JULIA_CI_WORKFLOWS_UPDATE_KEY }}
           token: ${{ secrets.GITHUB_TOKEN }}
-      - run: tree
-      - run: cat .github/workflows/auxme_manage_JuliaCIWorkflows.yml
       - name: TODO!!!
         uses: fjogeleit/yaml-update-action@main
         with:
@@ -49,9 +47,15 @@ jobs:
           propertyPath: 'on.workflow_dispatch.inputs.add_workflow.options'
           value: blabla
           commitChange: false
-
-
-          message: 'new workflow found and added to selectable options of ${{ github.event.repository.owner.name }}_manage_JuliaCIWorkflows'
+      - name: create_PR
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: ${{ env.PR_BRANCH_NAME }}
+          delete-branch: true
+          commit-message: "updated auxme_manage_JuliaCIWorkflows"
+          base: ${{ github.ref_name }}
+          title: "updated auxme_manage_JuliaCIWorkflows"
+          body: "updated auxme_manage_JuliaCIWorkflows to include new worflow file as adding option"
   manage_JuliaCIWorkflows:
     runs-on: ubuntu-latest
     if: ${{ github.event.repository.name != 'JuliaCIWorkflows' }}
