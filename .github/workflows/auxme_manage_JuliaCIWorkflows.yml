@@ -52,7 +52,7 @@ jobs:
               NEW_LIST_STR+="${INDENTATION}- '$FILENAME'\n"
             fi
           done
-          sed -i '/#MARKER_FOR_AUTO_UPDATE_BEGIN/,/#MARKER_FOR_AUTO_UPDATE_END/{/[^#]/d}' "$FILE"
+          sed -i '0,/#MARKER_FOR_AUTO_UPDATE_BEGIN/{/[^#]/d;}' "$FILE"
           echo "first done----------------"
           cat .github/workflows/auxme_manage_JuliaCIWorkflows.yml
           echo "fin-----------------"
