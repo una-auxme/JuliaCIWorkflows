@@ -34,11 +34,10 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.event.repository.name == 'JuliaCIWorkflows' }} && github.event_name == 'push'
     steps:
-      - run: echo "${{ github.event.repository.name }}"
       - name: "Check out repository"
         uses: actions/checkout@v4
         with:
-          path: working_repo
+          sparse-checkout: '.github'
           ssh-key: ${{ secrets.JULIA_CI_WORKFLOWS_UPDATE_KEY }}
           token: ${{ secrets.GITHUB_TOKEN }}
       - run: tree
