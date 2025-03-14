@@ -40,12 +40,13 @@ jobs:
           sparse-checkout: '.github'
           ssh-key: ${{ secrets.JULIA_CI_WORKFLOWS_UPDATE_KEY }}
           token: ${{ secrets.GITHUB_TOKEN }}
-      - name: TODO!!!
+      - name: update selectable options in auxme_manage_JuliaCIWorkflows.yml
         uses: fjogeleit/yaml-update-action@main
         with:
           valueFile: '.github/workflows/auxme_manage_JuliaCIWorkflows.yml'
           propertyPath: 'on.workflow_dispatch.inputs.add_workflow.options'
-          value: blabla
+          value: 
+            ['','a','b','c','d']
           commitChange: false
       - name: create_PR
         uses: peter-evans/create-pull-request@v7
