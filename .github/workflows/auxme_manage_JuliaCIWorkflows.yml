@@ -32,7 +32,7 @@ on:
 jobs:
   update_JuliaCIWorkflows_repo:
     runs-on: ubuntu-latest
-    if: ${{ github.event.repository.name == 'JuliaCIWorkflows' }}
+    if: ${{ github.event.repository.name == 'JuliaCIWorkflows' }} && github.event_name == 'push'
     steps:
       - run: echo "${{ github.event.repository.name }}"
       - name: "Check out repository"
@@ -46,10 +46,12 @@ jobs:
       - name: TODO!!!
         uses: fjogeleit/yaml-update-action@main
         with:
-          valueFile: 'file.yaml'
+          valueFile: '.github/workflows/auxme_manage_JuliaCIWorkflows.yml'
           propertyPath: 'on.workflow_dispatch.inputs.add_workflow.options'
           value: blabla
-          commitChange: true
+          commitChange: false
+
+
           message: 'new workflow found and added to selectable options of ${{ github.event.repository.owner.name }}_manage_JuliaCIWorkflows'
   manage_JuliaCIWorkflows:
     runs-on: ubuntu-latest
