@@ -16,11 +16,10 @@ on:
         default: ''
         options:
           - ''
-          #MARKER_FOR_AUTO_UPDATE_BEGIN (do not move, indent or tamper with! must be just below first, empty list element with same indentation)
+          # diese liste darf keine Hashtags entahlen!!!!
           - 'a'
           - 'b'
           - 'c'
-          #MARKER_FOR_AUTO_UPDATE_END (do not move, indent or tamper with! must be just below last list element with same indentation)
   pull_request:
   push:
     branches: 
@@ -50,6 +49,23 @@ jobs:
           propertyPath: 'on.workflow_dispatch.inputs.add_workflow.options[1]'
           value: d
           commitChange: false
+          
+      - name: restore comments
+        run: |
+          changed_files=$(git diff --name-only)
+          for file in $changed_files; do
+            if [[ -f "$file" ]]; then
+              while IFS= read -r line; do
+                if [[ "$line" == *#* ]]; then
+                  original_line=$(git show ":$file" | sed -n "${LINENO}p")
+                  echo "$original_line"
+                else
+                  echo "$line"
+                fi
+              done < "$file" > "$file.new"
+              mv "$file.new" "$file"
+            fi
+          done
       - name: create_PR
         uses: peter-evans/create-pull-request@v7
         with:
