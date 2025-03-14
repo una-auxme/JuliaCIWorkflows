@@ -17,6 +17,9 @@ on:
         options:
           - ''
           #MARKER_FOR_AUTO_UPDATE_BEGIN (do not move, indent or tamper with! must be just below first, empty list element with same indentation)
+          - 'a'
+          - 'b'
+          - 'c'
           #MARKER_FOR_AUTO_UPDATE_END (do not move, indent or tamper with! must be just below last list element with same indentation)
   pull_request:
   push:
@@ -40,22 +43,13 @@ jobs:
           ssh-key: ${{ secrets.JULIA_CI_WORKFLOWS_UPDATE_KEY }}
           token: ${{ secrets.GITHUB_TOKEN }}
       # using fjogeleit/yaml-update-action does not work as it does not seem to be able to handle lists
-      - name: update selectable options in auxme_manage_JuliaCIWorkflows.yml
-        run: |
-          FILE=".github/workflows/auxme_manage_JuliaCIWorkflows.yml"
-          WORKFLOW_DIR=".github/workflows"
-          INDENTATION=$(grep -o '^[[:space:]]*#MARKER_FOR_AUTO_UPDATE_BEGIN' "$FILE" | head -n 1)
-          NEW_LIST_STR=""
-          for FILEPATH in "$WORKFLOW_DIR"/*.yml; do
-            if [[ "$FILEPATH" != "$FILE" ]]; then
-              FILENAME=$(basename "$FILEPATH")
-              NEW_LIST_STR+="${INDENTATION}- '$FILENAME'\n"
-            fi
-          done
-          sed -i '0,/#MARKER_FOR_AUTO_UPDATE_BEGIN/{/[^#]/d;}' "$FILE"
-          echo "first done----------------"
-          cat .github/workflows/auxme_manage_JuliaCIWorkflows.yml
-          echo "fin-----------------"
+      - name: TODO!!!
+        uses: fjogeleit/yaml-update-action@main
+        with:
+          valueFile: '.github/workflows/auxme_manage_JuliaCIWorkflows.yml'
+          propertyPath: 'on.workflow_dispatch.inputs.add_workflow.options[1]'
+          value: d
+          commitChange: false
       - name: create_PR
         uses: peter-evans/create-pull-request@v7
         with:
