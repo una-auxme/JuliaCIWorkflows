@@ -17,6 +17,7 @@ on:
         options:
           - ''
           #MARKER_FOR_AUTO_UPDATE_BEGIN (do not move, indent or tamper with! must be just below first, empty list element with same indentation)
+          - 'workflows/auxme_manage_JuliaCIWorkflows'
           #MARKER_FOR_AUTO_UPDATE_END (do not move or tamper with! must be just below last list element)
 
   pull_request:
