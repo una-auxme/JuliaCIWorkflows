@@ -1,0 +1,13 @@
+The Julia-Formatter-action checks pullrequests for beeing formatted according to the julia coding standards.
+
+In order to format all files in a package, in a REPL in the package root, call:
+]add JuliaFormatter
+using JuliaFormatter
+format(".")
+
+you meight have to call format(".") multiple times, until it returns true.
+Preferably do that on all files, you change before adding them to a PR.
+
+Pitfalls: 
+If there are .jl files, that contain non-parseable content, JuliaFormatter could crash. 
+In order to exclude those .jl files from the format checks, add a file named ".JuliaFormatter.toml" with the content "ignore = ["*.jl"]" to the folder of the .jl files 

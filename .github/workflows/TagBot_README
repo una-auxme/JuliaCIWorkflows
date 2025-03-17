@@ -1,0 +1,16 @@
+TagBot creates Git-tags, GitHub-releases, and changelogs for registered Julia packages.
+
+See https://github.com/JuliaRegistries/TagBot
+
+The TagBot.yml in this repo is a simplifyed version of the recommended TagBot.yml from https://github.com/JuliaRegistries/TagBot/blob/master/README.md
+
+Make shure, that sufficent workflow-permissions are granted under the repositorys settings -> Actions -> General -> Workflow permissions: "Read and Write permissions for all repository scopes" AND "Allow github actions to create and approve pullrequests" -> Save
+
+The TagBot requires not only the automatically created GITHUB_TOKEN (https://docs.github.com/en/actions/security-for-github-actions/security-guides/automatic-token-authentication#about-the-github_token-secret) 
+but also a SSH-keypair (secrets.COMPATHELPER_PRIV containing the private part, a deploy key with arbitrary name the public part). TagBot creates git-tags and github-releases, so it needs access to be able to push to the repo via ssh.
+
+This shared Workflow reuses the COMPATHELPER Keypair. If there is none created, follow the manual of COMPATHELPER_README in JuliaCIWorkflows. Make shure to name the secret COMPATHELPER_PRIV.
+The process on how to generate the SSH_keys is also described here: https://github.com/JuliaRegistries/TagBot/blob/master/README.md#ssh-deploy-keys
+
+A common pitfall is that if there is an error in the TagBot inclusion into the repo (e.g. permission issues with the ssh key), retriggering a release meight not work even after fixing the issue, espaecially if the error persists for too long. 
+In that case, the only fixes are to do the job manually or skip that version as github release. After fixing the issue, checking in new versions into the Julia Registry should trigger TagBot correctly again.

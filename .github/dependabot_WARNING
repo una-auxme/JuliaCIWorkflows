@@ -1,0 +1,1 @@
+::warning title=dependabot::The use of dependabot for shared workflows is discouraged: shared workflows are to be updated automatically from JuliaCIWorkflows (which uses dependabot). If you want dependabot to handle repo specific workflow updates, you can do so.

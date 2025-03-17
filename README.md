@@ -2,11 +2,11 @@
 Julia CI workflows that are shared among several repositories. Updates to actions are to be pushed here from where all the other repos, that use the shared workflows, pull their updates automatically dayly, on pushes and when triggered by the user in the specific repo. After pulling, they create PRs to themselves, that (as of now) have to be merged manually.
 
 # Prepare this repo (JuliaCIWorkflows)
-We need a ssh-key-pair for the auxme_manage_JuliaCIWorkflows.yml action. In this repo, we require the private part to set in the repository secrets (named JULIA_CI_WORKFLOWS_UPDATE_KEY, no other name will be accepted for the JuliaCIWorkflows-repo!) and the public part (name does not matter) to be added to the deployment keys. For details see SSH_Key handling below 
+We need a ssh-key-pair for the auxme_manage_JuliaCIWorkflows.yml action. In this repo, we require the private part to set in the repository secrets (named JULIA_CI_WORKFLOWS_UPDATE_KEY, no other name will be accepted for the JuliaCIWorkflows-repo!) and the public part (name does not matter) to be added to the deployment keys. For details see SSH_Key handling below. Also under 
 
 # How to use in other repos
-Copy the unmodified (!) .github/workflows/auxme_manage_JuliaCIWorkflows.yml from this repo to your own repo (keeping the name and path the same). This action updates itself and the other shared workflows by opening pullrequests for you to approve. 
-To do that, the action needs an SSH Keypair (public part for deployment with write access, private part as repository secret, both to be set in the repository settings) to be generated and setup. For Repos, that want to use the shared workflows, the key can be named JULIA_CI_WORKFLOWS_UPDATE_KEY, COMPATHELPER_PRIV or DOCUMENTER_KEY. Therefore any of those will be reused automatically (in this order) if one is available. If none is available, you have to generate them as follows:
+Copy the unmodified (!) .github/workflows/auxme_manage_JuliaCIWorkflows.yml from this repo to your own repo (keeping the name and path the same). This action updates itself and the other shared workflows by opening pullrequests for you to approve. Make shure workflows are allowed to do that under Repositorysettings -> (Code and automation) Actions ->  Workflow permissions -> Read and Write permissions AND allow Actions to create Pullrequests -> Save.
+For opening the PRs, the action needs an SSH Keypair (public part for deployment with write access, private part as repository secret, both to be set in the repository settings) to be generated and setup. For Repos, that want to use the shared workflows, the key can be named JULIA_CI_WORKFLOWS_UPDATE_KEY, COMPATHELPER_PRIV or DOCUMENTER_KEY. Therefore any of those will be reused automatically (in this order) if one is available. If none is available, you have to generate them as follows:
 
 Generate a new SSH key
 	<ssh-keygen -m PEM -N "" -f juliaCI_key>
