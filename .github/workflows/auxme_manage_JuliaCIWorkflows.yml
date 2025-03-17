@@ -62,7 +62,6 @@ jobs:
                 within_markers=true
                 echo "$zeile" >> ".github/workflows/auxme_manage_JuliaCIWorkflows.yml_tempfile_by_action"
                 LEADING_WHITESPACES="${zeile%%[![:space:]]*}"
-                echo "${LEADING_WHITESPACES}- 'this_many_whitespaces'"
                 FILES=( $(find .github -type f -iname "*.yml" -printf "%P\n" | sort ) )
                 for FILE in "${FILES[@]}"; do
                   FILE_WITHOUT_EXTENSION="${FILE%.*}"
