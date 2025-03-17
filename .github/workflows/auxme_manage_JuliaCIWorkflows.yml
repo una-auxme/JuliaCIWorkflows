@@ -16,10 +16,12 @@ on:
         default: ''
         options:
           - ''
-          # diese liste darf keine Hashtags entahlen!!!!
+          #MARKER_FOR_AUTO_UPDATE_BEGIN (do not move, indent or tamper with! must be just below first, empty list element with same indentation)
           - 'a'
           - 'b'
           - 'c'
+          #MARKER_FOR_AUTO_UPDATE_END (do not move or tamper with! must be just below last list element)
+
   pull_request:
   push:
     branches: 
@@ -41,31 +43,37 @@ jobs:
           sparse-checkout: '.github'
           ssh-key: ${{ secrets.JULIA_CI_WORKFLOWS_UPDATE_KEY }}
           token: ${{ secrets.GITHUB_TOKEN }}
-      # using fjogeleit/yaml-update-action does not work as it does not seem to be able to handle lists
-      - name: TODO!!!
-        uses: fjogeleit/yaml-update-action@main
-        with:
-          valueFile: '.github/workflows/auxme_manage_JuliaCIWorkflows.yml'
-          propertyPath: 'on.workflow_dispatch.inputs.add_workflow.options[1]'
-          value: d
-          commitChange: false
-          
-      - name: restore comments
+
+      # fjogeleit/yaml-update-action and other parsers does not reteain comments, therefor we use bash and edit without parsing
+      #- name: update options list
+      #  uses: fjogeleit/yaml-update-action@main
+      #  with:
+      #    valueFile: '.github/workflows/auxme_manage_JuliaCIWorkflows.yml'
+      #    propertyPath: 'on.workflow_dispatch.inputs.add_workflow.options[1]'
+      #    value: TEST_abc
+      #    commitChange: false
+      - name: update options list
         run: |
-          changed_files=$(git diff --name-only)
-          for file in $changed_files; do
-            if [[ -f "$file" ]]; then
-              while IFS= read -r line; do
-                if [[ "$line" == *#* ]]; then
-                  original_line=$(git show ":$file" | sed -n "${LINENO}p")
-                  echo "$original_line"
-                else
-                  echo "$line"
-                fi
-              done < "$file" > "$file.new"
-              mv "$file.new" "$file"
-            fi
-          done
+          within_markers=false
+          while IFS= read -r zeile
+          do
+              if [[ "$within_markers" = false && "$zeile" =~ "#MARKER_FOR_AUTO_UPDATE_BEGIN" ]]; then
+                  within_markers=true
+                  echo "$zeile" >> ".github/workflows/auxme_manage_JuliaCIWorkflows.yml_tempfile_by_action"
+                  LEADING_WHITESPACES=$(echo "$input_string" | sed 's/[^[:space:]]//')
+                  FILES=( $(find .github -type f -iname "*.yml" -printf "%P\n" | sort ) )
+                  for FILE in "${FILES[@]}"; do
+                    echo "$FILE"
+                    echo "$LEADING_WHITESPACES- \'$FILE\'" >> ".github/workflows/auxme_manage_JuliaCIWorkflows.yml_tempfile_by_action"
+                  done
+              elif [[ "$within_markers" = true && "$zeile" =~ "#MARKER_FOR_AUTO_UPDATE_END" ]]; then
+                  within_markers=false
+                  echo "$zeile" >> ".github/workflows/auxme_manage_JuliaCIWorkflows.yml_tempfile_by_action"
+              elif [ "$within_markers" = false ] ; then
+                  echo "$zeile" >> ".github/workflows/auxme_manage_JuliaCIWorkflows.yml_tempfile_by_action"
+              fi
+          done < ".github/workflows/auxme_manage_JuliaCIWorkflows.yml"
+          mv -f .github/workflows/auxme_manage_JuliaCIWorkflows.yml_tempfile_by_action .github/workflows/auxme_manage_JuliaCIWorkflows.yml
       - name: create_PR
         uses: peter-evans/create-pull-request@v7
         with:
@@ -75,7 +83,30 @@ jobs:
           base: ${{ github.ref_name }}
           title: "updated auxme_manage_JuliaCIWorkflows"
           body: "updated auxme_manage_JuliaCIWorkflows to include new worflow file as adding option"
+  select_reference_repo:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.repository.name != 'JuliaCIWorkflows' }}
+    steps: 
+      - name: try_own_user 
+        if: github.event_name != 'pull_request'
+        # Prüfe, ob der String **nicht leer** ist, das **richtige Format hat** und das Repository existiert
+        run: |
+          REPO_OWNER_STRING = ${{ github.event.repository.owner.name }}
+          if [[ -n "$REPO_OWNER_STRING/JuliaCIWorkflows" && "$REPO_OWNER_STRING" =~ ^[a-zA-Z0-9_-]+/[a-zA-Z0-9_-]+$ && $(curl -s -o /dev/null -w "%{http_code}" https://api.github.com/repos/$REPO_STRING) == "200" ]]; then
+            echo "REF_REPO_OWNER=$REPO_OWNER_STRING" >> $GITHUB_ENV
+          fi
+      - name: PR_destitnaion 
+        if: github.event_name == 'pull_request'
+        run: |
+          REPO_OWNER_STRING = ${{ github.event.pull_request.base.repo.owner.login }}
+          if [[ -n "$REPO_OWNER_STRING/JuliaCIWorkflows" && "$REPO_OWNER_STRING" =~ ^[a-zA-Z0-9_-]+/[a-zA-Z0-9_-]+$ && $(curl -s -o /dev/null -w "%{http_code}" https://api.github.com/repos/$REPO_STRING) == "200" ]]; then
+            echo "REF_REPO_OWNER=$REPO_OWNER_STRING" >> $GITHUB_ENV
+          fi
+      - name: default 
+        if: ${{ env.REF_REPO_OWNER == '' }}
+        run: echo "REF_REPO_OWNER=auxme" >> $GITHUB_ENV
   manage_JuliaCIWorkflows:
+    needs: select_reference_repo
     runs-on: ubuntu-latest
     if: ${{ github.event.repository.name != 'JuliaCIWorkflows' }}
     steps:
@@ -99,6 +130,7 @@ jobs:
             echo "DOCUMENTER_KEY found"
           else
             echo "::error::No SSH keys found! Please make sure one of secrets.JULIA_CI_WORKFLOWS_UPDATE_KEY, secrets.COMPATHELPER_PRIV, or secrets.DOCUMENTER_KEY is set according to readme."
+            echo "END_MARKER_SSH_KEY" >> $GITHUB_ENV
           fi
       - name: "Check out repository with key"
         if: github.event_name != 'pull_request'
@@ -114,20 +146,12 @@ jobs:
         with: 
           sparse-checkout: '.github'
           path: working_repo
-      - name: "Check out ${{ github.event.repository.owner.name }}/JuliaCIWorkflows"
-        if: github.event_name != 'pull_request'
+      - name: "Check out ${{ env.REF_REPO_OWNER }}/JuliaCIWorkflows"
         uses: actions/checkout@v4
         with:
           sparse-checkout: '.github'
-          repository: ${{ github.event.repository.owner.name }}/JuliaCIWorkflows
+          repository: ${{ env.REF_REPO_OWNER }}/JuliaCIWorkflows
           path: reference_repo 
-      - name: "Check out ${{ github.event.pull_request.base.repo.owner.login }}/JuliaCIWorkflows (triggered by PR)"
-        if: github.event_name == 'pull_request'
-        uses: actions/checkout@v4
-        with:
-          sparse-checkout: '.github'
-          repository: ${{ github.event.pull_request.base.repo.owner.login }}/JuliaCIWorkflows
-          path: reference_repo     
       - name: set_github_actor
         if: github.event_name != 'pull_request'
         run: |
@@ -139,14 +163,14 @@ jobs:
           for FILE in "${FILES[@]}"; do
             if [ -f reference_repo/.github/$FILE ]; then
               if ! diff -q working_repo/.github/$FILE reference_repo/.github/$FILE >/dev/null; then
-                echo "::warning file=$FILE,title=different_version_found::$FILE is different, adding most recent version from ${{ github.event.repository.owner.name }}/JuliaCIWorkflows"
+                echo "::warning file=$FILE,title=different_version_found::$FILE is different, adding most recent version from ${{ env.REF_REPO_OWNER }}/JuliaCIWorkflows"
                 cp -f reference_repo/.github/$FILE working_repo/.github/$FILE
                 if [ -f reference_repo/.github/${FILE}_WARNING ]; then
                   cat reference_repo/.github/${FILE}_WARNING
                 fi
               fi
             else
-              echo "::notice file=$FILE,title=Repo-specific_workflow::workflow $FILE is not part of ${{ github.event.repository.owner.name }}/JuliaCIWorkflows, it seems to be specific to this repo and will be ignored"
+              echo "::notice file=$FILE,title=Repo-specific_workflow::workflow $FILE is not part of ${{ env.REF_REPO_OWNER }}/JuliaCIWorkflows, it seems to be specific to this repo and will be ignored"
             fi
           done
       - name: handle_arguments
@@ -162,7 +186,7 @@ jobs:
         if: github.event_name == 'pull_request'
         run: |
           if [[ `git status --porcelain` ]]; then
-            echo "::error title=workflows_not_valid::worksflows are not up-to-date with ${{ github.event.repository.owner.name }}/JuliaCIWorkflows. Update them. If you want to add a workflow only for this repo, make shure it has not the same name as any workflow from ${{ github.event.repository.owner.name }}/JuliaCIWorkflows."
+            echo "::error title=workflows_not_valid::worksflows are not up-to-date with ${{ env.REF_REPO_OWNER }}/JuliaCIWorkflows. Update them. If you want to add a workflow only for this repo, make shure it has not the same name as any workflow from ${{ github.event.repository.owner.name }}/JuliaCIWorkflows."
           fi
       - name: create_PR
         if: github.event_name != 'pull_request'
@@ -173,5 +197,5 @@ jobs:
           delete-branch: true
           commit-message: "updated all shared workflows"
           base: ${{ github.ref_name }}
-          title: "reset/updated all shared workflows to latest ${{ github.event.repository.owner.name }}/JuliaCIWorkflows version"
+          title: "reset/updated all shared workflows to latest ${{ env.REF_REPO_OWNER }}/JuliaCIWorkflows version"
           body: "this will overrite all local changes to the affected files. If you wish to use repo-specific workflows, it is recommended to name their files differently that those in the juliaCIworkflows repo! Then they will be ignored when updating the other workflows ; make shure all required secrets for the loaded actions are provided (see warnings for the latest execution of the CI-update action on the relevant branch)"
