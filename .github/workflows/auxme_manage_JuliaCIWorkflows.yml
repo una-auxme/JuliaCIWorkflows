@@ -1,7 +1,7 @@
-name: auxme_manage_JuliaCIWorkflows
+name: auxme_manage_JuliaCIWorkflows # name the same as the filename without ".yml"!
 
 env: 
-  PR_BRANCH_NAME: bot_auxme_JuliaCIWorkflows_patches_${{ github.ref_name }}
+  PR_BRANCH_NAME: bot_${{ github.workflow }}_patches_${{ github.ref_name }} # caution: if modified, also modify on:push:branches:<exclusion_branches>
 
 permissions: write-all
 
@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
     inputs:
       add_workflow:
-        description: 'add new workflow' #'workflow from auxme/JuliaCIWorkflows to add to this repo (run empty once for update, if option is not yet available)'
+        description: 'add new workflow' #'workflow from REF_REPO_OWNER/JuliaCIWorkflows to add to this repo (run empty once for update, if option is not yet available)'
         required: false
         type: choice
         default: ''
@@ -26,7 +26,6 @@ on:
           - 'workflows/TagBot'
           - 'workflows/TestLTS'
           - 'workflows/TestLatest'
-          - 'workflows/auxme_manage_JuliaCIWorkflows'
           #MARKER_FOR_AUTO_UPDATE_END (do not move or tamper with! must be just below last list element)
 
   pull_request:
@@ -35,7 +34,7 @@ on:
       - '**'
       - '!examples'
       - '!gh-pages'
-      - '!bot_auxme_JuliaCIWorkflows_patches_*'
+      - '!bot_*_patches_*'
   schedule:
     - cron: '17 4 * * *'
 
@@ -55,7 +54,7 @@ jobs:
       #- name: update options list
       #  uses: fjogeleit/yaml-update-action@main
       #  with:
-      #    valueFile: '.github/workflows/auxme_manage_JuliaCIWorkflows.yml'
+      #    valueFile: '.github/workflows/${{ github.workflow }}.yml'
       #    propertyPath: 'on.workflow_dispatch.inputs.add_workflow.options[1]'
       #    value: TEST_abc
       #    commitChange: false
@@ -67,59 +66,64 @@ jobs:
           do
             if [[ "$replaced_first_occurance" = false && "$within_markers" = false && "$zeile" =~ "#MARKER_FOR_AUTO_UPDATE_BEGIN" ]]; then
                 within_markers=true
-                echo "$zeile" >> ".github/workflows/auxme_manage_JuliaCIWorkflows.yml_tempfile_by_action"
+                echo "$zeile" >> ".github/workflows/${{ github.workflow }}.yml_tempfile_by_action"
                 LEADING_WHITESPACES="${zeile%%[![:space:]]*}"
                 FILES=( $(find .github -type f -iname "*.yml" -printf "%P\n" | sort ) )
                 for FILE in "${FILES[@]}"; do
-                  FILE_WITHOUT_EXTENSION="${FILE%.*}"
-                  echo "$FILE"
-                  echo "${LEADING_WHITESPACES}- '$FILE_WITHOUT_EXTENSION'" >> ".github/workflows/auxme_manage_JuliaCIWorkflows.yml_tempfile_by_action"
+                  if [[ "$FILE" =~ "${{ github.workflow }}" ]]; then
+                    FILE_WITHOUT_EXTENSION="${FILE%.*}"
+                    echo "$FILE"
+                    echo "${LEADING_WHITESPACES}- '$FILE_WITHOUT_EXTENSION'" >> ".github/workflows/${{ github.workflow }}.yml_tempfile_by_action"
+                  fi
                 done
             elif [[ "$replaced_first_occurance" = false && "$within_markers" = true && "$zeile" =~ "#MARKER_FOR_AUTO_UPDATE_END" ]]; then
                 within_markers=false
                 replaced_first_occurance=true
-                echo "$zeile" >> ".github/workflows/auxme_manage_JuliaCIWorkflows.yml_tempfile_by_action"
+                echo "$zeile" >> ".github/workflows/${{ github.workflow }}.yml_tempfile_by_action"
             elif [ "$within_markers" = false ] ; then
-                echo "$zeile" >> ".github/workflows/auxme_manage_JuliaCIWorkflows.yml_tempfile_by_action"
+                echo "$zeile" >> ".github/workflows/${{ github.workflow }}.yml_tempfile_by_action"
             fi
-          done < ".github/workflows/auxme_manage_JuliaCIWorkflows.yml"
-          mv -f .github/workflows/auxme_manage_JuliaCIWorkflows.yml_tempfile_by_action .github/workflows/auxme_manage_JuliaCIWorkflows.yml
+          done < ".github/workflows/${{ github.workflow }}.yml"
+          mv -f .github/workflows/${{ github.workflow }}.yml_tempfile_by_action .github/workflows/${{ github.workflow }}.yml
       - name: create_PR
         uses: peter-evans/create-pull-request@v7
         with:
           branch: ${{ env.PR_BRANCH_NAME }}
           delete-branch: true
-          commit-message: "updated auxme_manage_JuliaCIWorkflows"
+          commit-message: "updated ${{ github.workflow }}"
           base: ${{ github.ref_name }}
-          title: "updated auxme_manage_JuliaCIWorkflows"
-          body: "updated auxme_manage_JuliaCIWorkflows to include new worflow file as adding option"
-  select_reference_repo:
-    runs-on: ubuntu-latest
-    if: ${{ github.event.repository.name != 'JuliaCIWorkflows' }}
-    steps: 
-      - name: try_own_user 
-        if: github.event_name != 'pull_request'
-        # Prüfe, ob der String **nicht leer** ist, das **richtige Format hat** und das Repository existiert
-        run: |
-          REPO_OWNER_STRING = ${{ github.event.repository.owner.name }}
-          if [[ -n "$REPO_OWNER_STRING/JuliaCIWorkflows" && "$REPO_OWNER_STRING" =~ ^[a-zA-Z0-9_-]+/[a-zA-Z0-9_-]+$ && $(curl -s -o /dev/null -w "%{http_code}" https://api.github.com/repos/$REPO_STRING) == "200" ]]; then
-            echo "REF_REPO_OWNER=$REPO_OWNER_STRING" >> $GITHUB_ENV
-          fi
-      - name: PR_destitnaion 
-        if: github.event_name == 'pull_request'
-        run: |
-          REPO_OWNER_STRING = ${{ github.event.pull_request.base.repo.owner.login }}
-          if [[ -n "$REPO_OWNER_STRING/JuliaCIWorkflows" && "$REPO_OWNER_STRING" =~ ^[a-zA-Z0-9_-]+/[a-zA-Z0-9_-]+$ && $(curl -s -o /dev/null -w "%{http_code}" https://api.github.com/repos/$REPO_STRING) == "200" ]]; then
-            echo "REF_REPO_OWNER=$REPO_OWNER_STRING" >> $GITHUB_ENV
-          fi
-      - name: default 
-        if: ${{ env.REF_REPO_OWNER == '' }}
-        run: echo "REF_REPO_OWNER=auxme" >> $GITHUB_ENV
+          title: "updated ${{ github.workflow }}"
+          body: "updated ${{ github.workflow }} to include new worflow file as adding option"
+
+  
   manage_JuliaCIWorkflows:
-    needs: select_reference_repo
     runs-on: ubuntu-latest
     if: ${{ github.event.repository.name != 'JuliaCIWorkflows' }}
     steps:
+      - name: select_reference_repo PR_base 
+        if: github.event_name == 'pull_request'
+        run: |
+          REPO_OWNER_STRING = ${{ github.event.pull_request.base.repo.owner.login }}
+          if [[ -n "$REPO_OWNER_STRING" && "$REPO_OWNER_STRING/JuliaCIWorkflows" =~ ^[a-zA-Z0-9_-]+/[a-zA-Z0-9_-]+$ && $(curl -s -o /dev/null -w "%{http_code}" https://api.github.com/repos/$REPO_OWNER_STRING/JuliaCIWorkflows) == "200" ]]; then
+            echo "REF_REPO_OWNER=$REPO_OWNER_STRING" >> $GITHUB_ENV
+            echo "set REF_REPO_OWNER to ${{ env.REF_REPO_OWNER }}"
+          fi
+      - name: select_reference_repo try_own_user
+        if: github.event_name != 'pull_request'
+        # Prüfe, ob der String **nicht leer** ist, das **richtige Format hat** und das Repository existiert
+        run: |
+          REPO_OWNER_STRING=${{ github.event.repository.owner.name }}
+
+          if [[ -n "$REPO_OWNER_STRING" && "$REPO_OWNER_STRING/JuliaCIWorkflows" =~ ^[a-zA-Z0-9_-]+/[a-zA-Z0-9_-]+$ && $(curl -s -o /dev/null -w "%{http_code}" https://api.github.com/repos/$REPO_OWNER_STRING/JuliaCIWorkflows) == "200" ]]; then
+            echo "REF_REPO_OWNER=$REPO_OWNER_STRING" >> $GITHUB_ENV
+            echo "set REF_REPO_OWNER to ${{ env.REF_REPO_OWNER }}"
+          fi
+      - name: select_reference_repo default 
+        if: ${{ env.REF_REPO_OWNER == '' }}
+        run: echo "REF_REPO_OWNER=una-auxme" >> $GITHUB_ENV
+      - name: select_reference_repo fail if not set
+        if: ${{ env.REF_REPO_OWNER == '' }}
+        run: exit 1
       # we need a ssh private key to deploy the branch for the PR. we can use existing keys for compathelper or documentation deployment, or we need a seperate one
       - name: Check for available SSH keys and set SSH_KEY
         # for PRs we can only warn/fail, not create branches and PRs... 
@@ -161,6 +165,8 @@ jobs:
         with:
           sparse-checkout: '.github'
           repository: ${{ env.REF_REPO_OWNER }}/JuliaCIWorkflows
+          # access right issue!!! only main allowed, as default branch property is not public
+          ref: main
           path: reference_repo 
       - name: set_github_actor
         if: github.event_name != 'pull_request'
