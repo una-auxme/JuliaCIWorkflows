@@ -63,8 +63,8 @@ jobs:
                   LEADING_WHITESPACES=$(echo "$input_string" | sed 's/[^[:space:]]//')
                   FILES=( $(find .github -type f -iname "*.yml" -printf "%P\n" | sort ) )
                   for FILE in "${FILES[@]}"; do
-                    echo "$FILE"
-                    echo "$LEADING_WHITESPACES- \'$FILE\'" >> ".github/workflows/auxme_manage_JuliaCIWorkflows.yml_tempfile_by_action"
+                    echo "${LEADING_WHITESPACES}$FILE"
+                    echo "${LEADING_WHITESPACES}- '{$FILE%.yml}'" >> ".github/workflows/auxme_manage_JuliaCIWorkflows.yml_tempfile_by_action"
                   done
               elif [[ "$within_markers" = true && "$zeile" =~ "#MARKER_FOR_AUTO_UPDATE_END" ]]; then
                   within_markers=false
