@@ -79,9 +79,11 @@ jobs:
                 LEADING_WHITESPACES="${zeile%%[![:space:]]*}"
                 FILES=( $(find .github -type f -iname "*.yml" -printf "%P\n" | sort ) )
                 for FILE in "${FILES[@]}"; do
+                  FILE_WITHOUT_EXTENSION="${FILE%.*}"
                   if [[ "$FILE" =~ "${{ github.workflow }}" ]]; then
-                    FILE_WITHOUT_EXTENSION="${FILE%.*}"
-                    echo "$FILE"
+                    echo "NOT listing $FILE"
+                  else
+                    echo "$FILE -> options list"
                     echo "${LEADING_WHITESPACES}- '$FILE_WITHOUT_EXTENSION'" >> ".github/workflows/${{ github.workflow }}.yml_tempfile_by_action"
                   fi
                 done
