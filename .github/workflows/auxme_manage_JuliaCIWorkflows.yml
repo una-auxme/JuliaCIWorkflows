@@ -29,7 +29,10 @@ on:
         options: # this list is updated automatically by the action itself (if repo = JuliaCIWorkflows; if repo != JuliaCIWorkflows, this list and whole workflow is updated from JuliaCIWorkflows)
           - ''
           #MARKER_FOR_AUTO_UPDATE_BEGIN (do not move, indent or tamper with! must be just below first, empty list element with same indentation)
-          - 'workflows/auxme_manage_JuliaCIWorkflows'
+          - 'dependabot'
+          - 'workflows/CompatHelper'
+          - 'workflows/JuliaFormatter'
+          - 'workflows/TagBot'
           #MARKER_FOR_AUTO_UPDATE_END (do not move or tamper with! must be just below last list element)
 
   pull_request:
