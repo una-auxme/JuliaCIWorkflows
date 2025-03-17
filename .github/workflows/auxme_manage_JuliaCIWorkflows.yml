@@ -58,24 +58,26 @@ jobs:
           replaced_first_occurance=false
           while IFS= read -r zeile
           do
-              if [[ "replaced_first_occurance" = false && "$within_markers" = false && "$zeile" =~ "#MARKER_FOR_AUTO_UPDATE_BEGIN" ]]; then
-                  within_markers=true
-                  echo "$zeile" >> ".github/workflows/auxme_manage_JuliaCIWorkflows.yml_tempfile_by_action"
-                  LEADING_WHITESPACES=$(echo "$zeile" | sed 's/[^[:space:]]//')
-                  echo "${LEADING_WHITESPACES}- 'this_many_whitespaces'"
-                  FILES=( $(find .github -type f -iname "*.yml" -printf "%P\n" | sort ) )
-                  for FILE in "${FILES[@]}"; do
-                    FILE_WITHOUT_EXTENSION="{$FILE%.*}"
-                    echo "$FILE"
-                    echo "${LEADING_WHITESPACES}- '$FILE_WITHOUT_EXTENSION'" >> ".github/workflows/auxme_manage_JuliaCIWorkflows.yml_tempfile_by_action"
-                  done
-              elif [[ "replaced_first_occurance" = false && "$within_markers" = true && "$zeile" =~ "#MARKER_FOR_AUTO_UPDATE_END" ]]; then
-                  within_markers=false
-                  replaced_first_occurance=true
-                  echo "$zeile" >> ".github/workflows/auxme_manage_JuliaCIWorkflows.yml_tempfile_by_action"
-              elif [ "$within_markers" = false ] ; then
-                  echo "$zeile" >> ".github/workflows/auxme_manage_JuliaCIWorkflows.yml_tempfile_by_action"
-              fi
+            if [[ "replaced_first_occurance" = false && "$within_markers" = false && "$zeile" =~ "#MARKER_FOR_AUTO_UPDATE_BEGIN" ]]; then
+                echo "A"
+                within_markers=true
+                echo "$zeile" >> ".github/workflows/auxme_manage_JuliaCIWorkflows.yml_tempfile_by_action"
+                LEADING_WHITESPACES=$(echo "$zeile" | sed 's/[^[:space:]]//')
+                echo "${LEADING_WHITESPACES}- 'this_many_whitespaces'"
+                FILES=( $(find .github -type f -iname "*.yml" -printf "%P\n" | sort ) )
+                for FILE in "${FILES[@]}"; do
+                  FILE_WITHOUT_EXTENSION="{$FILE%.*}"
+                  echo "$FILE"
+                  echo "${LEADING_WHITESPACES}- '$FILE_WITHOUT_EXTENSION'" >> ".github/workflows/auxme_manage_JuliaCIWorkflows.yml_tempfile_by_action"
+                done
+            elif [[ "replaced_first_occurance" = false && "$within_markers" = true && "$zeile" =~ "#MARKER_FOR_AUTO_UPDATE_END" ]]; then
+                echo "B"
+                within_markers=false
+                replaced_first_occurance=true
+                echo "$zeile" >> ".github/workflows/auxme_manage_JuliaCIWorkflows.yml_tempfile_by_action"
+            elif [ "$within_markers" = false ] ; then
+                echo "$zeile" >> ".github/workflows/auxme_manage_JuliaCIWorkflows.yml_tempfile_by_action"
+            fi
           done < ".github/workflows/auxme_manage_JuliaCIWorkflows.yml"
           mv -f .github/workflows/auxme_manage_JuliaCIWorkflows.yml_tempfile_by_action .github/workflows/auxme_manage_JuliaCIWorkflows.yml
       - name: create_PR
