@@ -85,7 +85,7 @@ jobs:
           commit-message: "updated ${{ github.workflow }}"
           base: ${{ github.ref_name }}
           title: "updated ${{ github.workflow }}"
-          body: "updated ${{ github.workflow }} to include new worflow file as adding option"
+          body: "updated ${{ github.workflow }} to include new workflow file as adding option"
 
   
   manage_JuliaCIWorkflows:
@@ -178,7 +178,7 @@ jobs:
                 fi
               fi
             else
-              echo "::notice file=$FILE,title=Repo-specific_workflow::workflow $FILE is not part of ${{ env.REF_REPO_OWNER }}/JuliaCIWorkflows, it seems to be specific to this repo and will be ignored"
+              echo "::notice file=$FILE,title=Repo-specific_workflow::$FILE is not part of ${{ env.REF_REPO_OWNER }}/JuliaCIWorkflows, it seems to be specific to this repo and will be ignored"
             fi
           done
       - name: handle_arguments
