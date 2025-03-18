@@ -228,7 +228,10 @@ jobs:
         run: |
           echo '${{ github.event_name }} wants to add ${{ inputs.add_workflow }} workflow to this repo'
           echo '::notice title=Adding Workflow::${{ inputs.add_workflow }} is to be added to this repository'
+          tree -a
           cp -f reference_repo/.github/${{ inputs.add_workflow }}.yml working_repo/.github/${{ inputs.add_workflow }}.yml
+          echo "cp -f reference_repo/.github/${{ inputs.add_workflow }}.yml working_repo/.github/${{ inputs.add_workflow }}.yml"
+          tree -a
           if [ -f reference_repo/.github/${{ inputs.add_workflow }}_WARNING ]; then
             cat reference_repo/.github/${{ inputs.add_workflow }}_WARNING
           fi
