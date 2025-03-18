@@ -233,6 +233,10 @@ jobs:
             cat reference_repo/.github/${{ inputs.add_workflow }}_WARNING
           fi
           if [ -f reference_repo/.github/${{ inputs.add_workflow }}_MESSAGE ]; then
+            OLD_MSG=${{ env.PR_MESSAGE_ADDITION }}
+            echo "PR_MESSAGE_ADDITION<<END_MARKER_PR_MESSAGE_ADDITION"
+            printf "${OLD_MSG}\n$(cat reference_repo/.github/${{ inputs.add_workflow }}_MESSAGE)"
+            echo "END_MARKER_PR_MESSAGE_ADDITION"
             echo "PR_MESSAGE_ADDITION<<END_MARKER_PR_MESSAGE_ADDITION" >> $GITHUB_ENV
             printf "${OLD_MSG}\n$(cat reference_repo/.github/${{ inputs.add_workflow }}_MESSAGE)" >> $GITHUB_ENV
             echo "END_MARKER_PR_MESSAGE_ADDITION" >> $GITHUB_ENV
