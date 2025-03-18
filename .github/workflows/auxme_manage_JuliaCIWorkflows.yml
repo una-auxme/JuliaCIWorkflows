@@ -227,13 +227,14 @@ jobs:
         if: github.event_name == 'workflow_dispatch' && inputs.add_workflow != ''
         run: |
           echo '${{ github.event_name }} wants to add ${{ inputs.add_workflow }} workflow to this repo'
-          echo '::notice,title={Adding Workflow ${{ inputs.add_workflow }}}::{${{ inputs.add_workflow }} is to be added to this repository}'
+          echo '::notice title=Adding Workflow ${{ inputs.add_workflow }}::${{ inputs.add_workflow }} is to be added to this repository'
           cp -f reference_repo/.github/${{ inputs.add_workflow }}.yml working_repo/.github/${{ inputs.add_workflow }}.yml
           if [ -f reference_repo/.github/${{ inputs.add_workflow }}_WARNING ]; then
             cat reference_repo/.github/${{ inputs.add_workflow }}_WARNING
           fi
           if [ -f reference_repo/.github/${{ inputs.add_workflow }}_MESSAGE ]; then
             echo "PR_MESSAGE_ADDITION+=$(cat reference_repo/.github/${{ inputs.add_workflow }}_MESSAGE)" >> $GITHUB_ENV
+            echo "debug: $(cat reference_repo/.github/${{ inputs.add_workflow }}_MESSAGE)"
           fi
           echo "Message to be appended to PR-Message:"
           echo "${{ env.PR_MESSAGE_ADDITION }}" 
