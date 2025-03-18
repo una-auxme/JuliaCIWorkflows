@@ -127,7 +127,7 @@ jobs:
       - name: select_reference_repo PR_base 
         if: github.event_name == 'pull_request'
         run: |
-          REPO_OWNER_STRING = ${{ github.event.pull_request.base.repo.owner.login }}
+          REPO_OWNER_STRING=${{ github.event.pull_request.base.repo.owner.login }}
           if [[ -n "$REPO_OWNER_STRING" && "$REPO_OWNER_STRING/JuliaCIWorkflows" =~ ^[a-zA-Z0-9_-]+/[a-zA-Z0-9_-]+$ && $(curl -s -o /dev/null -w "%{http_code}" https://api.github.com/repos/$REPO_OWNER_STRING/JuliaCIWorkflows) == "200" ]]; then
             echo "REF_REPO_OWNER=$REPO_OWNER_STRING" >> $GITHUB_ENV
             echo "set REF_REPO_OWNER to ${{ env.REF_REPO_OWNER }}"
@@ -234,15 +234,10 @@ jobs:
           fi
           if [ -f reference_repo/.github/${{ inputs.add_workflow }}_MESSAGE ]; then
             OLD_MSG=${{ env.PR_MESSAGE_ADDITION }}
-            echo "PR_MESSAGE_ADDITION<<END_MARKER_PR_MESSAGE_ADDITION"
-            printf "${OLD_MSG}\n$(cat reference_repo/.github/${{ inputs.add_workflow }}_MESSAGE)"
-            echo "END_MARKER_PR_MESSAGE_ADDITION"
-            echo "PR_MESSAGE_ADDITION<<END_MARKER_PR_MESSAGE_ADDITION" >> $GITHUB_ENV
-            printf "${OLD_MSG}\n$(cat reference_repo/.github/${{ inputs.add_workflow }}_MESSAGE)" >> $GITHUB_ENV
-            echo "END_MARKER_PR_MESSAGE_ADDITION" >> $GITHUB_ENV
+            printf "PR_MESSAGE_ADDITION<<END_MARKER_PR_MESSAGE_ADDITION\n" >> $GITHUB_ENV
+            printf "${OLD_MSG}$(cat reference_repo/.github/${{ inputs.add_workflow }}_MESSAGE)\n" >> $GITHUB_ENV
+            printf "END_MARKER_PR_MESSAGE_ADDITION\n" >> $GITHUB_ENV
           fi
-          echo "Message to be appended to PR-Message:"
-          echo "${{ env.PR_MESSAGE_ADDITION }}" 
 
       # for PRs, we want the action to fail, if workflows are not uptodate
       - name: fail_on_PR_with_wrong_workflows
@@ -265,4 +260,4 @@ jobs:
           commit-message: "updated all shared workflows"
           base: ${{ github.ref_name }}
           title: "reset/updated all shared workflows to latest ${{ env.REF_REPO_OWNER }}/JuliaCIWorkflows version"
-          body: "this will overrite all local changes to the affected files. If you wish to use repo-specific workflows, it is recommended to name their files differently that those in the juliaCIworkflows repo! Then they will be ignored when updating the other workflows \n \n make shure all required secrets for the loaded actions are provided (see warnings for the latest execution of the CI-update action on the relevant branch) \n \n ${{ env.PR_MESSAGE_ADDITION }}"
+          body: "default hints: this will overrite all local changes to the affected files. If you wish to use repo-specific workflows, it is recommended to name their files differently that those in the juliaCIworkflows repo! Then they will be ignored when updating the other workflows \n \n specific hints\n ${{ env.PR_MESSAGE_ADDITION }}"
