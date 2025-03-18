@@ -99,6 +99,7 @@ jobs:
             fi
           done < ".github/workflows/${{ github.workflow }}.yml"
           mv -f .github/workflows/${{ github.workflow }}.yml_tempfile_by_action .github/workflows/${{ github.workflow }}.yml
+          git diff
       - name: create_PR
         uses: peter-evans/create-pull-request@v7
         with:
@@ -243,7 +244,7 @@ jobs:
         if: github.event_name == 'pull_request'
         run: |
           if [[ `git status --porcelain` ]]; then
-            echo "::error title=workflows_not_valid::worksflows are not up-to-date with ${{ env.REF_REPO_OWNER }}/JuliaCIWorkflows. Update them. If you want to add a workflow only for this repo, make shure it has not the same name as any workflow from ${{ env.REF_REPO_OWNER }}/JuliaCIWorkflows. It is recommended, that the workflows filename contains ${{ github.event.repository.name }}"
+            echo "::error title=workflows_not_valid::worksflows are not up-to-date with ${{ env.REF_REPO_OWNER }}/JuliaCIWorkflows. Update them. If you want to add a workflow only for this repo, make shure it has not the same name as any workflow from ${{ env.REF_REPO_OWNER }}/JuliaCIWorkflows. It is recommended, that the workflows filename contains \"${{ github.event.repository.name }}\""
             exit 1
           fi
 
