@@ -208,6 +208,7 @@ jobs:
       # here the relevant part happens
       - name: check_all_if_they_are_latest
         run: |
+          REPO_NAME = ${{ github.event.repository.name }}
           FILES=( $(find working_repo/.github -type f -iname "*.yml" -printf "%P\n" | sort ) )
           for FILE in "${FILES[@]}"; do
             if [ -f reference_repo/.github/$FILE ]; then
@@ -215,12 +216,13 @@ jobs:
                 echo "::warning file=$FILE,title=different_version_found::$FILE is different, adding most recent version from ${{ env.REF_REPO_OWNER }}/JuliaCIWorkflows"
                 cp -f reference_repo/.github/$FILE working_repo/.github/$FILE
               fi
-            elif [[ ! "$FILE" =~ "${{ github.event.repository.name }}" ]]
-              echo "::notice file=$FILE,title=Repo-specific_workflow::$FILE is not part of ${{ env.REF_REPO_OWNER }}/JuliaCIWorkflows, it seems to be specific to this repo and will be ignored. Change its filename to contain ${{ github.event.repository.name }} to suppress this notice."
+            elif [[ ! "${FILE,,}" =~ "${REPO_NAME,,}" ]]; then
+              echo "::notice file=$FILE,title=Repo-specific_workflow::$FILE is not part of ${{ env.REF_REPO_OWNER }}/JuliaCIWorkflows, it seems to be specific to this repo and will be ignored. Change its filename to contain $REPO_NAME to suppress this notice."
             fi
           done
       # file_WARNING gets printed if it exists, recommended format is the github-action warning format
       # file_MESSAGE gets appeded to the PRs message if it exists (e.g. for telling the user to add a secret to the repo, that is required by the workflow) only single line allowed!
+      # TODO: add list of supportfiles/get supportfiles from workflowfile and grab them too (e.g. makedocs.jl, runtests.jl etc.)
       - name: handle_arguments
         if: github.event_name == 'workflow_dispatch' && inputs.add_workflow != ''
         run: |
