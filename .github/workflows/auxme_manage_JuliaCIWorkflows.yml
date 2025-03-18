@@ -99,7 +99,7 @@ jobs:
             fi
           done < ".github/workflows/${{ github.workflow }}.yml"
           mv -f .github/workflows/${{ github.workflow }}.yml_tempfile_by_action .github/workflows/${{ github.workflow }}.yml
-          git diff
+          git diff | cat -A
       - name: create_PR
         uses: peter-evans/create-pull-request@v7
         with:
