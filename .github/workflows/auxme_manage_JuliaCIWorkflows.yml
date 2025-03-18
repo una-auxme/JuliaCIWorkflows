@@ -223,6 +223,7 @@ jobs:
       # file_WARNING gets printed if it exists, recommended format is the github-action warning format
       # file_MESSAGE gets appeded to the PRs message if it exists (e.g. for telling the user to add a secret to the repo, that is required by the workflow) only single line allowed!
       # TODO: add list of supportfiles/get supportfiles from workflowfile and grab them too (e.g. makedocs.jl, runtests.jl etc.)
+      # TODO: Handle case where the requested workflow is already present (currently, this does not create errors, but also no PR, so the user meight be confused)
       - name: handle_arguments
         if: github.event_name == 'workflow_dispatch' && inputs.add_workflow != ''
         run: |
@@ -263,4 +264,4 @@ jobs:
           commit-message: "updated all shared workflows"
           base: ${{ github.ref_name }}
           title: "reset/updated all shared workflows to latest ${{ env.REF_REPO_OWNER }}/JuliaCIWorkflows version"
-          body: "default hints: this will overrite all local changes to the affected files. If you wish to use repo-specific workflows, it is recommended to name their files differently that those in the juliaCIworkflows repo! Then they will be ignored when updating the other workflows \n \n specific hints\n ${{ env.PR_MESSAGE_ADDITION }}"
+          body: "default hints: \nthis will overrite all local changes to the affected files. If you wish to use repo-specific workflows, it is recommended to name their files differently that those in the juliaCIworkflows repo! Then they will be ignored when updating the other workflows \n \n specific hints:\n ${{ env.PR_MESSAGE_ADDITION }}"
