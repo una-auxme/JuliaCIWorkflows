@@ -36,7 +36,7 @@ jobs:
             echo "END_MARKER_SSH_KEY" >> $GITHUB_ENV
             echo "COMPATHELPER_PRIV found"
           else
-            echo "::error::No SSH keys found! Please make sure secrets.COMPATHELPER_PRIV or secrets.DOCUMENTER_KEY is set according to readme."
+            echo "::error::No SSH keys found! Please make shure secrets.COMPATHELPER_PRIV or secrets.DOCUMENTER_KEY is set according to readme."
             echo "END_MARKER_SSH_KEY" >> $GITHUB_ENV
           fi
 

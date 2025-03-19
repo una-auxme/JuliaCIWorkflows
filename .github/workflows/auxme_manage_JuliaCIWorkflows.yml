@@ -5,6 +5,14 @@
 # When those PRs are merged, the required fix has to be distributed manually. 
 #
 # You have been warned.
+# 
+# recommended approach for changes to this workflow: create a fork of JuliaCIWorkflows and a fork of a repo using shared Workflows (e.g. FMI.jl)
+#         disable most of the workflows there to save the github runner resources, otherwise each push will lead to all on.push workflows to be triggered
+#         make your modifications and test them. As final test, push the modified auxme_manage_JuliaCIWorkflows.yml to your JuliaCIWorkflows fork (this will not check the step for default JuliaCIWorkflows repo selection, make shure this part works too). 
+#         Check if the action works as desired, then approve the automatic PR to your fork. Check all works after that too. If it does, run auxme_manage_JuliaCIWorkflows.yml in your forked "client-repo" (e.g. FMI.jl).
+#         If the action ran as desired, approve the automatic PR to update it. rerun the action with a workflow to be added (that does not exist on the fork), to also check the handle arguments part of this action. 
+#         When everything works, approve the PR and check one last time for successful action performance. If all is fine, you can proceed to open a PR to the upstream repo, if not, start over!
+#         When opening the PR to upstream, keep in mind, that action behavior ist slightly different (e.g. reference-repo selection), so also monitor every step along this path.
 #
 # (Common pitfall: selection of the reference repo meight be broken, which can not easyly be tested when not on deployment repo)
 
@@ -169,7 +177,7 @@ jobs:
             echo "END_MARKER_SSH_KEY" >> $GITHUB_ENV
             echo "DOCUMENTER_KEY found"
           else
-            echo "::error::No SSH keys found! Please make sure one of secrets.JULIA_CI_WORKFLOWS_UPDATE_KEY, secrets.COMPATHELPER_PRIV, or secrets.DOCUMENTER_KEY is set according to readme."
+            echo "::error::No SSH keys found! Please make shure one of secrets.JULIA_CI_WORKFLOWS_UPDATE_KEY, secrets.COMPATHELPER_PRIV, or secrets.DOCUMENTER_KEY is set according to readme."
             echo "END_MARKER_SSH_KEY" >> $GITHUB_ENV
           fi
 
