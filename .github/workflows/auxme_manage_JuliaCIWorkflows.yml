@@ -39,8 +39,13 @@ on:
           #MARKER_FOR_AUTO_UPDATE_BEGIN (do not move, indent or tamper with! must be just below first, empty list element with same indentation)
           - 'dependabot'
           - 'workflows/CompatHelper'
+          - 'workflows/Documentation'
+          - 'workflows/Eval'
+          - 'workflows/Example'
           - 'workflows/JuliaFormatter'
           - 'workflows/TagBot'
+          - 'workflows/TestLTS'
+          - 'workflows/TestLatest'
           #MARKER_FOR_AUTO_UPDATE_END (do not move or tamper with! must be just below last list element)
 
   pull_request:
