@@ -1,0 +1,1 @@
+CompatHelper requires a SSH_Keypair with the private part in secrets.COMPATHELPER_PRIV and the public part added as deploy key. Make shure you provide those, with write access. See compathelper readme and repo readme in JuliaCIWorkflows or https://github.com/JuliaRegistries/CompatHelper.jl/blob/master/docs/src/index.md for details.

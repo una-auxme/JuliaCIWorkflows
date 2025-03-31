@@ -1,0 +1,1 @@
+::warning title=TestLatest::For TestLatest workflow, you have to provide the codecov_token (https://docs.codecov.com/docs/adding-the-codecov-token) as repository secret as CODECOV_TOKEN

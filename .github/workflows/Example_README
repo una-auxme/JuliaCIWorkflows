@@ -1,0 +1,25 @@
+Examles.yml computes the examples of the repo, be they jupyter or pluto examples.
+The yml contains a list of filenames of jupyter examples (to be located in examples/jupyter-src).
+The action computes all of them in parallel.
+
+The julia-version must not be set to "latest" or similar but must remain at a specific numeric version number (e.g. '1.10'). 
+The reason for that is, that the version number is used as part of the jupyter-julia-kernel-name and those are only available at specific numeric versions. 
+
+As jupyter for julia requires the IJulia Package to be installed, make shure, that for the examples, a Project.toml file is provided, that includes the IJulia Package as well as all other dependencys, required for execution of the examples. 
+
+Info for step "Fix SVGs": Newer versions of jupyter nbconvert output svgs multiple times per output cell (as different types). 
+"nbconvert --to-markdown" fails to include them into the md file using a symbolic link but instead embedds them as xml text into the md file. 
+Documenter does not accept this, therefor we remove all representations of the svg in the output cell, that would not be translated correctly into a supportfile, that will be linked correctly.
+
+Info for step "Fix GIFs": if any of the jupyter examples in your repo exports a gif file, include the commented step named "Fix GIFs" into the Examles.yml file. (currently this is beeing used in FMIFlux.jl-juliacon2023 example)
+Just make shure to follow the naming conventions for gifs in each example: use filnames 
+<filename=joinpath(@__DIR__, "gif_1.gif")>, <... "gif_2.gif", <... "gif_3.gif">, ...
+for generating the gifs in each jupyter example. Keep them in the order of occurance within the example.
+This is required, as jupyter nbconvert embedds gifs as base64 encoded data. Documenter can not handle this by itself, so the data is extracted from the md by a commandline tool and placed into a supportfile, which are linked into the md file afterwards.
+
+Pluto examples are build using the PlutoSliderServer. All pluto notebooks located under "examples/pluto-src" are exported automatically.
+
+All exported examples are pushed to the examples-branch of the repository. 
+As all jupyter-exports as well as the execution of PlutoSliderServer are computed in parallel and individually commited and pushed after their individual completion, race conditions on pushing to the repo can not be prevented.
+If a race-condition occurs, the fastest push wins, all others fail with necessity to merge. This is disregarded, the new branch-state gets pulled, the changes are commited again and the push is beeing retryed.
+Retrying is save in this instance, as one push is always guaranteed to succeed. As long as there are more retrys than examples (or the examples do not all finish building at the same time), the action will succed and all files will be pushed.

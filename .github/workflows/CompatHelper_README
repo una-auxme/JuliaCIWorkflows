@@ -1,0 +1,26 @@
+CompatHelper is a Julia package that help to keep the [compat] entries of any packages Project.toml up-to-date.
+It is a workaround, as there is currently no Julia support for Dependabot.
+
+See https://juliaregistries.github.io/CompatHelper.jl/stable/
+
+The CompatHelper.yml in this repo is a simplifyed version of the recommended CompatHelper.yml from https://github.com/JuliaRegistries/CompatHelper.jl/blob/master/.github/workflows/CompatHelper.yml
+
+The CompatHelper requires not only the automatically created GITHUB_TOKEN (https://docs.github.com/en/actions/security-for-github-actions/security-guides/automatic-token-authentication#about-the-github_token-secret) 
+but also a SSH-keypair (secrets.COMPATHELPER_PRIV containing the private part, a deploy key with arbitrary name the public part). CompatHelper creates branches and pushes changes of the Project.toml to them, so it needs access to be able to push to the repo via ssh.
+
+Creating SSH Key:
+https://juliaregistries.github.io/CompatHelper.jl/dev/#Creating-SSH-Key
+Generate a new SSH key
+	<ssh-keygen -m PEM -N "" -f compathelper_key>
+Create a new GitHub secret
+	Copy the private key, <cat compathelper_key> (copy whole content, including begin and end flags !)
+	Go to your repositories settings page
+	Select Secrets, and New Repository Secret
+	Name the secret COMPATHELPER_PRIV, paste the copied private key
+Create a new deploy key
+	Copy the public key, <cat compathelper_key.pub> (copy the whole line; e.g.: ssh-ed25519 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx uni-augsburg\user@pc)
+	Go to your repositories settings page
+	Select Deploy Keys, and Add Deploy Key
+	Name the deploy key COMPATHELPER_PUB, paste in the copied public key
+	Ensure that the key has Write Access by selecting the checkbox (!) 
+Cleanup the SSH key from your computer, <rm -f compathelper_key compathelper_key.pub>

@@ -1,0 +1,11 @@
+The Test-latest-action executes the packages unit-tests on the latest julia version on ubuntu and windows.
+
+As per the julia specs, the tests must be located at <package-root>/test/runtests.jl
+
+To include it into another repository, you first have to provide the codecov_token (https://docs.codecov.com/docs/adding-the-codecov-token):
+in the configuration tab of the repo in Codecov under General, copy the token.
+in github add it to the repository secrets (Settings -> Secrets and Variables -> New repository secret) as CODECOV_TOKEN
+then just paste the TestLastest.yml into .github/workflows. If you also want testing against Julias LTS version, also have a look at TestLTS.yml
+
+If you want to optain a visual badge of the success-status on the workflow, eg. to include it in the documentation, you could do so from
+https://github.com/OWNER/REPOSITORY/actions/workflows/TestLastest.yml/badge.svg

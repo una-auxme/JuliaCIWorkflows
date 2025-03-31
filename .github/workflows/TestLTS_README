@@ -1,0 +1,8 @@
+The Test-LTS-action executes the packages unit-tests on the current long-term-stable julia version on ubuntu and windows.
+
+As per the julia specs, the tests must be located at <package-root>/test/runtests.jl
+
+To include it into another repository, just paste the TestLTS.yml into .github/workflows. If you also want testing against Julias latest version, also have a look at TestLatest.yml
+
+If you want to optain a visual badge of the success-status on the workflow, eg. to include it in the documentation, you could do so from
+https://github.com/OWNER/REPOSITORY/actions/workflows/TestLTS.yml/badge.svg
