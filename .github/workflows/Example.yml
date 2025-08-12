@@ -21,7 +21,7 @@ jobs:
       notebookfiles_len: ${{ steps.get-notebooks.outputs.notebookfiles_len }}
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         
       - name: Get Jupyter Notebooks
         id: get-notebooks
@@ -67,7 +67,7 @@ jobs:
 
       - name: "Check out repository"
         if: ${{ matrix.id < needs.generate-matrix.outputs.notebookfiles_len }}  # Job überspringen, wenn ID größer oder gleich der Anzahl der Notebooks ist
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: "Set up Julia"
         if: ${{ matrix.id < needs.generate-matrix.outputs.notebookfiles_len }}  # Job überspringen, wenn ID größer oder gleich der Anzahl der Notebooks ist
@@ -167,7 +167,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: "Check out repository"
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: "Set up Julia"
         uses: julia-actions/setup-julia@v2
