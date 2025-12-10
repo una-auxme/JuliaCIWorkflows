@@ -113,7 +113,7 @@ jobs:
           done < ".github/workflows/${{ github.workflow }}.yml"
           mv -f .github/workflows/${{ github.workflow }}.yml_tempfile_by_action .github/workflows/${{ github.workflow }}.yml
       - name: create_PR
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
           branch: ${{ env.PR_BRANCH_NAME }}
           delete-branch: true
@@ -269,7 +269,7 @@ jobs:
       # if a PR created by this action is merged, all workflows are uptodate. The merge triggers this action, but there are no changes. So this step deletes the PR branch
       - name: create_PR
         if: github.event_name != 'pull_request'
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
           path: working_repo
           branch: ${{ env.PR_BRANCH_NAME }}
